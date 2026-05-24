@@ -31,10 +31,10 @@ function DiscoverSSDP(searchTarget = "ssdp:all", timeout = 5000) as object
         socket.SendTo("239.255.255.250", 1900, request)
         
         ' Collect responses
-        endTime = CreateObject("roSystemTime").GetTicksMs() + timeout
+        timer = CreateObject("roTimespan")
+        timer.Mark()
         while true
-            now = CreateObject("roSystemTime").GetTicksMs()
-            if now >= endTime then exit while
+            if timer.TotalMilliseconds() >= timeout then exit while
             
             ' Wait for responses
             data = socket.ReceiveStr(1024)
@@ -116,7 +116,6 @@ function FetchDeviceDescription(location as string) as string
     try
         http = CreateObject("roUrlTransfer")
         http.SetUrl(location)
-        http.SetTimeout(2000)
         
         response = http.GetToString()
         
@@ -217,10 +216,9 @@ function HealthCheckServer(serverAddress as string) as boolean
         url = "http://" + serverAddress + "/api/status/limit"
         http = CreateObject("roUrlTransfer")
         http.SetUrl(url)
-        http.SetTimeout(1000)
         
         response = http.GetToString()
-        if response <> "" and http.GetResponseCode() = 200
+        if response <> ""
             return true
         end if
     catch e

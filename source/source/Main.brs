@@ -14,11 +14,14 @@ sub Main()
 
     'Create a scene and load /components/TVTime.xml'
     scene = screen.CreateScene("TVTime")
+    scene.discovering = true
     screen.show()
 
     ' Initialize the app state
     m.serverAddress = GetConfiguredBackendAddress()
-    m.discoveryStartTime = CreateObject("roSystemTime").GetTicksMs()
+    m.clock = CreateObject("roTimespan")
+    m.clock.Mark()
+    m.discoveryStartTime = 0
     m.discoveryTimeout = 30000  ' 30 seconds
     m.pollInterval = 5000  ' Poll every 5 seconds
     m.lastPollTime = 0
@@ -28,7 +31,7 @@ sub Main()
         print "Using configured backend server: " + m.serverAddress
         scene.serverAddress = m.serverAddress
         scene.discovering = false
-        m.lastPollTime = CreateObject("roSystemTime").GetTicksMs()
+        m.lastPollTime = NowMs()
         PollTVTimeStatus(scene, m.serverAddress)
     end if
 
@@ -41,7 +44,7 @@ sub Main()
             if msg.isScreenClosed() then return
         end if
         
-        currentTime = CreateObject("roSystemTime").GetTicksMs()
+        currentTime = NowMs()
         elapsedTime = currentTime - m.discoveryStartTime
         
         ' Handle discovery phase
@@ -73,6 +76,10 @@ sub Main()
         end if
     end while
 end sub
+
+function NowMs() as integer
+    return m.clock.TotalMilliseconds()
+end function
 
 sub PollTVTimeStatus(scene as object, serverAddress as string)
     '

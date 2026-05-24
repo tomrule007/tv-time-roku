@@ -9,6 +9,7 @@
     "deploy": "node scripts/deploy.js",
     "deploy:build": "npm run build && npm run deploy",
     "dev": "node scripts/dev-mode.js",
+    "debug:roku": "node scripts/debug-console.js",
     "check:roku": "node scripts/test-endpoints.js",
     "test": "npm run build"
   },

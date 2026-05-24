@@ -21,13 +21,11 @@ function FetchTVTimeStatus(serverAddress as string) as object
         url = "http://" + serverAddress + "/api/status/limit"
         http = CreateObject("roUrlTransfer")
         http.SetUrl(url)
-        http.SetTimeout(3000)
         
         responseCode = http.GetToString()
-        httpCode = http.GetResponseCode()
         
-        if httpCode <> 200
-            statusObj.error = "Server returned HTTP " + httpCode.ToStr()
+        if responseCode = ""
+            statusObj.error = "Empty response from " + url
             return statusObj
         end if
         
@@ -41,11 +39,16 @@ function FetchTVTimeStatus(serverAddress as string) as object
                 dailyLimit = json.dailyLimitMinutes
                 todayUsage = json.todayUsageMinutes
                 statusObj.timeRemaining = dailyLimit - todayUsage
+                if statusObj.timeRemaining < 0
+                    statusObj.timeRemaining = 0
+                end if
             end if
             
             ' Map limitExceeded to limitHit
             if json.DoesExist("limitExceeded")
                 statusObj.limitHit = json.limitExceeded
+            else if json.DoesExist("dailyLimitMinutes") and json.DoesExist("todayUsageMinutes")
+                statusObj.limitHit = todayUsage >= dailyLimit
             end if
             
             statusObj.success = true
@@ -58,66 +61,4 @@ function FetchTVTimeStatus(serverAddress as string) as object
     end try
     
     return statusObj
-end function
-
-function ParseJson(jsonString as string) as object
-    '
-    ' Simple JSON parser for basic objects
-    ' @param jsonString - JSON string to parse
-    ' @return object or invalid
-    '
-    
-    try
-        ' Remove whitespace
-        json = jsonString.Trim()
-        
-        ' Create a simple associative array
-        result = {}
-        
-        ' Find the opening brace
-        if json.Left(1) <> "{"
-            return invalid
-        end if
-        
-        ' Remove outer braces
-        json = json.Mid(2, json.Len() - 2)
-        
-        ' Split by comma (basic approach - doesn't handle nested objects)
-        pairs = json.Split(",")
-        
-        for each pair in pairs
-            pair = pair.Trim()
-            colonPos = pair.Instr(":")
-            
-            if colonPos > 0
-                key = pair.Left(colonPos - 1).Trim()
-                value = pair.Mid(colonPos + 1).Trim()
-                
-                ' Remove quotes from key
-                key = key.Replace("""", "")
-                
-                ' Parse value
-                if value = "true"
-                    result[key] = true
-                else if value = "false"
-                    result[key] = false
-                else if value.Left(1) = """"
-                    ' String value
-                    result[key] = value.Mid(2, value.Len() - 2)
-                else
-                    ' Try to parse as number
-                    if value.Match("^\d+$")
-                        result[key] = val(value)
-                    else
-                        result[key] = value
-                    end if
-                end if
-            end if
-        end for
-        
-        return result
-        
-    catch e
-        return invalid
-    end try
 end function

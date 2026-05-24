@@ -10,89 +10,54 @@
     </interface>
 
     <children>
-        <!-- Main container -->
-        <LayoutGroup
-            id="mainLayout"
-            layoutDirection="vert"
-            itemSpacings="[40]"
-            horizAlignment="center"
-            vertAlignment="center"
+        <Rectangle
+            id="background"
             width="1280"
             height="720"
-        >
-            <!-- Status indicator -->
-            <Label
-                id="statusLabel"
-                text="Searching for backend server..."
-                font.size="48"
-                width="1200"
-                horizAlign="center"
-                color="0xFFFFFFFF"
-            />
+            color="0x101820FF"
+        />
 
-            <!-- Time remaining display -->
-            <LayoutGroup
-                id="timeDisplay"
-                layoutDirection="vert"
-                itemSpacings="[20]"
-                horizAlignment="center"
-                width="1200"
-                visible="false"
-            >
-                <Label
-                    id="timeLabel"
-                    text="TV Time Remaining"
-                    font.size="32"
-                    width="1200"
-                    color="0x72D7EEFF"
-                    horizAlign="center"
-                />
-                <Label
-                    id="minutesLabel"
-                    text="-- minutes"
-                    font.size="72"
-                    width="1200"
-                    color="0x00FF00FF"
-                    horizAlign="center"
-                    font.bold="true"
-                />
-            </LayoutGroup>
+        <Label
+            id="statusLabel"
+            text="Connecting to TV Time"
+            translation="[80, 132]"
+            width="1120"
+            height="48"
+            color="0x72D7EEFF"
+            horizAlign="center"
+        />
 
-            <!-- Limit hit message -->
-            <Label
-                id="limitLabel"
-                text="Time to turn the TV off"
-                font.size="54"
-                width="1200"
-                color="0xFF0000FF"
-                horizAlign="center"
-                visible="false"
-                font.bold="true"
-            />
+        <Label
+            id="headlineLabel"
+            text="Searching for backend server..."
+            translation="[80, 238]"
+            width="1120"
+            height="72"
+            color="0xFFFFFFFF"
+            horizAlign="center"
+        />
 
-            <!-- Error message -->
-            <Label
-                id="errorLabel"
-                text=""
-                font.size="36"
-                width="1200"
-                color="0xFF6B6BFF"
-                horizAlign="center"
-                visible="false"
-            />
+        <Label
+            id="detailLabel"
+            text="Make sure the backend is running on your network."
+            translation="[120, 330]"
+            width="1040"
+            height="104"
+            color="0xC8D1D9FF"
+            horizAlign="center"
+            wrap="true"
+        />
 
-            <!-- Loading indicator -->
-            <Label
-                id="loadingLabel"
-                text="Discovering server..."
-                font.size="28"
-                width="1200"
-                color="0xFFA500FF"
-                horizAlign="center"
-                visible="false"
-                font.bold="true"
-            />
-        </LayoutGroup>
+        <Label
+            id="minutesLabel"
+            text="-- minutes"
+            translation="[80, 292]"
+            width="1120"
+            height="118"
+            color="0x00FF00FF"
+            horizAlign="center"
+            visible="false"
+        />
     </children>
 
     <!-- BrightScript Portion -->
@@ -101,23 +66,16 @@
         function init()
             m.top.setFocus(true)
             m.statusLabel = m.top.findNode("statusLabel")
-            m.timeDisplay = m.top.findNode("timeDisplay")
-            m.timeLabel = m.top.findNode("timeLabel")
+            m.headlineLabel = m.top.findNode("headlineLabel")
+            m.detailLabel = m.top.findNode("detailLabel")
             m.minutesLabel = m.top.findNode("minutesLabel")
-            m.limitLabel = m.top.findNode("limitLabel")
-            m.errorLabel = m.top.findNode("errorLabel")
-            m.loadingLabel = m.top.findNode("loadingLabel")
-            m.mainLayout = m.top.findNode("mainLayout")
+
+            m.top.observeField("serverAddress", "onFieldChanged")
+            m.top.observeField("timeRemaining", "onFieldChanged")
+            m.top.observeField("error", "onFieldChanged")
+            m.top.observeField("isLimitHit", "onFieldChanged")
+            m.top.observeField("discovering", "onFieldChanged")
             
-            m.port = CreateObject("roMessagePort")
-            m.top.observeField("serverAddress", m.port)
-            m.top.observeField("timeRemaining", m.port)
-            m.top.observeField("error", m.port)
-            m.top.observeField("isLimitHit", m.port)
-            m.top.observeField("discovering", m.port)
-            
-            ' Initialize UI state - show discovering
-            m.top.discovering = true
             UpdateUI()
         end function
 
@@ -127,22 +85,42 @@
             isDiscovering = m.top.discovering
             timeRemaining = m.top.timeRemaining
             
-            ' Hide all views first
-            m.timeDisplay.visible = false
-            m.limitLabel.visible = false
-            m.errorLabel.visible = false
-            m.loadingLabel.visible = false
-            m.statusLabel.visible = false
-            
             if isDiscovering
-                m.loadingLabel.visible = true
+                m.statusLabel.text = "Connecting to TV Time"
+                m.statusLabel.color = "0x72D7EEFF"
+                m.headlineLabel.text = "Searching for backend server..."
+                m.headlineLabel.color = "0xFFFFFFFF"
+                m.detailLabel.text = "Make sure the backend is running on your network."
+                m.detailLabel.visible = true
+                m.minutesLabel.visible = false
             else if hasError
-                m.errorLabel.visible = true
-                m.errorLabel.text = "Backend Server Not Found" + chr(10) + m.top.error
+                m.statusLabel.text = "Backend server not found"
+                m.statusLabel.color = "0xFF6B6BFF"
+                m.headlineLabel.text = "Cannot read TV limit"
+                m.headlineLabel.color = "0xFFFFFFFF"
+                m.detailLabel.text = m.top.error
+                m.detailLabel.visible = true
+                m.minutesLabel.visible = false
             else if isLimitHit
-                m.limitLabel.visible = true
+                m.statusLabel.text = "Daily TV limit reached"
+                m.statusLabel.color = "0xFF6B6BFF"
+                m.headlineLabel.text = "Time to turn the TV off"
+                m.headlineLabel.color = "0xFF6B6BFF"
+                m.detailLabel.text = "No TV time remains today."
+                m.detailLabel.visible = true
+                m.minutesLabel.visible = false
             else
-                m.timeDisplay.visible = true
+                m.statusLabel.text = "TV Time Remaining"
+                m.statusLabel.color = "0x72D7EEFF"
+                m.headlineLabel.text = "You have"
+                m.headlineLabel.color = "0xFFFFFFFF"
+                if m.top.serverAddress <> ""
+                    m.detailLabel.text = "Polling " + m.top.serverAddress + " every few seconds."
+                else
+                    m.detailLabel.text = "The app checks the backend every few seconds."
+                end if
+                m.detailLabel.visible = true
+                m.minutesLabel.visible = true
                 m.minutesLabel.text = timeRemaining.ToStr() + " minutes"
                 
                 if timeRemaining > 30
@@ -156,10 +134,7 @@
         end function
 
         function onFieldChanged(msg as object) as void
-            field = msg.GetField()
-            if field = "serverAddress" or field = "timeRemaining" or field = "error" or field = "isLimitHit" or field = "discovering"
-                UpdateUI()
-            end if
+            UpdateUI()
         end function
     ]]>
     </script>

@@ -93,6 +93,18 @@ npm run check:roku -- 192.168.1.100
 
 Deploy uses the Roku developer web installer on port `80`. `check:roku` uses the ECP API on port `8060`.
 
+View the Roku BrightScript debug console:
+
+```bash
+npm run debug:roku
+```
+
+The debug console uses `ROKU_DEV_TARGET` from `.env` by default. You can also pass an IP address:
+
+```bash
+npm run debug:roku -- 192.168.1.100
+```
+
 ## Project Layout
 
 - `source/manifest`: Roku channel manifest
