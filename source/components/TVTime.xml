@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="TVTime" extends="Scene">
+    <interface>
+        <field id="serverAddress" type="string" />
+        <field id="timeRemaining" type="int" />
+        <field id="status" type="string" />
+        <field id="isLimitHit" type="boolean" />
+        <field id="error" type="string" />
+        <field id="discovering" type="boolean" />
+    </interface>
+
+    <children>
+        <!-- Main container -->
+        <LayoutGroup
+            id="mainLayout"
+            layoutDirection="vert"
+            itemSpacings="[40]"
+            horizAlignment="center"
+            vertAlignment="center"
+            width="1280"
+            height="720"
+        >
+            <!-- Status indicator -->
+            <Label
+                id="statusLabel"
+                text="Searching for backend server..."
+                font.size="48"
+                width="1200"
+                horizAlign="center"
+                color="0xFFFFFFFF"
+            />
+
+            <!-- Time remaining display -->
+            <LayoutGroup
+                id="timeDisplay"
+                layoutDirection="vert"
+                itemSpacings="[20]"
+                horizAlignment="center"
+                width="1200"
+                visible="false"
+            >
+                <Label
+                    id="timeLabel"
+                    text="TV Time Remaining"
+                    font.size="32"
+                    width="1200"
+                    color="0x72D7EEFF"
+                    horizAlign="center"
+                />
+                <Label
+                    id="minutesLabel"
+                    text="-- minutes"
+                    font.size="72"
+                    width="1200"
+                    color="0x00FF00FF"
+                    horizAlign="center"
+                    font.bold="true"
+                />
+            </LayoutGroup>
+
+            <!-- Limit hit message -->
+            <Label
+                id="limitLabel"
+                text="Time to turn the TV off"
+                font.size="54"
+                width="1200"
+                color="0xFF0000FF"
+                horizAlign="center"
+                visible="false"
+                font.bold="true"
+            />
+
+            <!-- Error message -->
+            <Label
+                id="errorLabel"
+                text=""
+                font.size="36"
+                width="1200"
+                color="0xFF6B6BFF"
+                horizAlign="center"
+                visible="false"
+            />
+
+            <!-- Loading indicator -->
+            <Label
+                id="loadingLabel"
+                text="Discovering server..."
+                font.size="28"
+                width="1200"
+                color="0xFFA500FF"
+                horizAlign="center"
+                visible="false"
+                font.bold="true"
+            />
+        </LayoutGroup>
+    </children>
+
+    <!-- BrightScript Portion -->
+    <script type="text/brightscript">
+    <![CDATA[
+        function init()
+            m.top.setFocus(true)
+            m.statusLabel = m.top.findNode("statusLabel")
+            m.timeDisplay = m.top.findNode("timeDisplay")
+            m.timeLabel = m.top.findNode("timeLabel")
+            m.minutesLabel = m.top.findNode("minutesLabel")
+            m.limitLabel = m.top.findNode("limitLabel")
+            m.errorLabel = m.top.findNode("errorLabel")
+            m.loadingLabel = m.top.findNode("loadingLabel")
+            m.mainLayout = m.top.findNode("mainLayout")
+            
+            m.port = CreateObject("roMessagePort")
+            m.top.observeField("serverAddress", m.port)
+            m.top.observeField("timeRemaining", m.port)
+            m.top.observeField("error", m.port)
+            m.top.observeField("isLimitHit", m.port)
+            m.top.observeField("discovering", m.port)
+            
+            ' Initialize UI state - show discovering
+            m.top.discovering = true
+            UpdateUI()
+        end function
+
+        function UpdateUI()
+            isLimitHit = m.top.isLimitHit
+            hasError = m.top.error <> ""
+            isDiscovering = m.top.discovering
+            timeRemaining = m.top.timeRemaining
+            
+            ' Hide all views first
+            m.timeDisplay.visible = false
+            m.limitLabel.visible = false
+            m.errorLabel.visible = false
+            m.loadingLabel.visible = false
+            m.statusLabel.visible = false
+            
+            if isDiscovering
+                m.loadingLabel.visible = true
+            else if hasError
+                m.errorLabel.visible = true
+                m.errorLabel.text = "Backend Server Not Found" + chr(10) + m.top.error
+            else if isLimitHit
+                m.limitLabel.visible = true
+            else
+                m.timeDisplay.visible = true
+                m.minutesLabel.text = timeRemaining.ToStr() + " minutes"
+                
+                if timeRemaining > 30
+                    m.minutesLabel.color = "0x00FF00FF"  ' Green
+                else if timeRemaining > 10
+                    m.minutesLabel.color = "0xFFA500FF"  ' Orange
+                else
+                    m.minutesLabel.color = "0xFF0000FF"  ' Red
+                end if
+            end if
+        end function
+
+        function onFieldChanged(msg as object) as void
+            field = msg.GetField()
+            if field = "serverAddress" or field = "timeRemaining" or field = "error" or field = "isLimitHit" or field = "discovering"
+                UpdateUI()
+            end if
+        end function
+    ]]>
+    </script>
+    <!-- End of BrightScript Portion -->
+</component>

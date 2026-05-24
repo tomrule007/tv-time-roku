@@ -1,0 +1,31 @@
+{
+  "name": "tv-time-roku",
+  "version": "1.0.0",
+  "description": "Roku channel application for monitoring TV viewing time using a local backend server",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build.js",
+    "clean": "node scripts/clean.js",
+    "deploy": "node scripts/deploy.js",
+    "deploy:build": "npm run build && npm run deploy",
+    "dev": "node scripts/dev-mode.js",
+    "check:roku": "node scripts/test-endpoints.js",
+    "test": "npm run build"
+  },
+  "keywords": [
+    "roku",
+    "channel",
+    "tv-time",
+    "parental-control"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "archiver": "^6.0.0",
+    "form-data": "^4.0.0",
+    "node-fetch": "^2.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
