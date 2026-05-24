@@ -90,8 +90,9 @@ sub PollTVTimeStatus(scene as object, serverAddress as string)
     status = FetchTVTimeStatus(serverAddress)
     
     if status.success
-        print "Status: " + status.timeRemaining.ToStr() + " minutes remaining. Limit hit: " + status.limitHit.ToStr()
+        print "Status: " + status.timeRemaining.ToStr() + " minutes remaining. Daily limit: " + status.dailyLimitMinutes.ToStr() + ". Limit hit: " + status.limitHit.ToStr()
         scene.timeRemaining = status.timeRemaining
+        scene.dailyLimitMinutes = status.dailyLimitMinutes
         scene.isLimitHit = status.limitHit
         scene.error = ""
     else

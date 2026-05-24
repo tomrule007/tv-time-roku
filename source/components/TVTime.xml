@@ -3,6 +3,7 @@
     <interface>
         <field id="serverAddress" type="string" />
         <field id="timeRemaining" type="int" />
+        <field id="dailyLimitMinutes" type="int" />
         <field id="status" type="string" />
         <field id="isLimitHit" type="boolean" />
         <field id="error" type="string" />
@@ -72,6 +73,7 @@
 
             m.top.observeField("serverAddress", "onFieldChanged")
             m.top.observeField("timeRemaining", "onFieldChanged")
+            m.top.observeField("dailyLimitMinutes", "onFieldChanged")
             m.top.observeField("error", "onFieldChanged")
             m.top.observeField("isLimitHit", "onFieldChanged")
             m.top.observeField("discovering", "onFieldChanged")
@@ -84,6 +86,7 @@
             hasError = m.top.error <> ""
             isDiscovering = m.top.discovering
             timeRemaining = m.top.timeRemaining
+            dailyLimitMinutes = m.top.dailyLimitMinutes
             
             if isDiscovering
                 m.statusLabel.text = "Connecting to TV Time"
@@ -106,7 +109,11 @@
                 m.statusLabel.color = "0xFF6B6BFF"
                 m.headlineLabel.text = "Time to turn the TV off"
                 m.headlineLabel.color = "0xFF6B6BFF"
-                m.detailLabel.text = "No TV time remains today."
+                if dailyLimitMinutes > 0
+                    m.detailLabel.text = "Today's limit was " + dailyLimitMinutes.ToStr() + " minutes."
+                else
+                    m.detailLabel.text = "No TV time remains today."
+                end if
                 m.detailLabel.visible = true
                 m.minutesLabel.visible = false
             else

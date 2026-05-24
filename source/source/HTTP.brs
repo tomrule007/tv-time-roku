@@ -13,6 +13,7 @@ function FetchTVTimeStatus(serverAddress as string) as object
     statusObj = {
         success: false,
         timeRemaining: 0,
+        dailyLimitMinutes: 0,
         limitHit: false,
         error: ""
     }
@@ -38,6 +39,7 @@ function FetchTVTimeStatus(serverAddress as string) as object
             if json.DoesExist("dailyLimitMinutes") and json.DoesExist("todayUsageMinutes")
                 dailyLimit = json.dailyLimitMinutes
                 todayUsage = json.todayUsageMinutes
+                statusObj.dailyLimitMinutes = dailyLimit
                 statusObj.timeRemaining = dailyLimit - todayUsage
                 if statusObj.timeRemaining < 0
                     statusObj.timeRemaining = 0
