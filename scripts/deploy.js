@@ -1,7 +1,8 @@
 const fs = require('fs');
 const path = require('path');
-const fetch = require('node-fetch');
+const { DigestClient } = require('digest-fetch');
 const FormData = require('form-data');
+require('dotenv').config({ quiet: true });
 
 const rootDir = path.resolve(__dirname, '..');
 const packageZip = path.join(rootDir, 'dist', 'apps', 'tv-time-roku.zip');
@@ -9,6 +10,7 @@ const packageZip = path.join(rootDir, 'dist', 'apps', 'tv-time-roku.zip');
 const rokuIP = process.argv[2] || process.env.ROKU_DEV_TARGET;
 const username = process.argv[3] || process.env.ROKU_DEV_USERNAME || 'rokudev';
 const password = process.argv[4] || process.env.ROKU_DEV_PASSWORD;
+const installerPort = process.env.ROKU_DEV_INSTALL_PORT || '80';
 
 function log(message, type = 'info') {
   const colors = {
@@ -24,7 +26,26 @@ function log(message, type = 'info') {
 
 function cleanRokuIP(ip) {
   if (!ip) return null;
-  return ip.replace(/https?:\/\//, '').replace(/\/$/, '').replace(/:\d+$/, '');
+  return ip.replace(/https?:\/\//, '').replace(/\/.*$/, '').replace(/:\d+$/, '');
+}
+
+function getInstallerBaseUrl(ip, port) {
+  const cleanIP = cleanRokuIP(ip);
+  return port === '80' ? `http://${cleanIP}` : `http://${cleanIP}:${port}`;
+}
+
+function getInstallMessages(body) {
+  const matches = [...body.matchAll(/"text":"([^"]+)"/g)];
+
+  if (matches.length > 0) {
+    return matches.map((match) => match[1]);
+  }
+
+  if (body.includes('Install Success')) {
+    return ['Install Success'];
+  }
+
+  return [];
 }
 
 async function deploy() {
@@ -53,11 +74,12 @@ async function deploy() {
   log(`Deploying package: ${path.relative(rootDir, packageZip)}`);
 
   try {
-    const url = `http://${cleanIP}:8060/plugin_install`;
+    const url = `${getInstallerBaseUrl(cleanIP, installerPort)}/plugin_install`;
     const form = new FormData();
+    const archive = fs.readFileSync(packageZip);
 
     form.append('mysubmit', 'Install');
-    form.append('archive', fs.createReadStream(packageZip), {
+    form.append('archive', archive, {
       filename: path.basename(packageZip),
       contentType: 'application/zip'
     });
@@ -65,13 +87,14 @@ async function deploy() {
 
     log(`Uploading to ${url}...`);
 
-    const response = await fetch(url, {
+    const client = new DigestClient(username, password);
+    const response = await client.fetch(url, {
       method: 'POST',
       headers: {
         ...form.getHeaders(),
-        Authorization: `Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`
+        'Content-Length': form.getLengthSync()
       },
-      body: form,
+      body: form.getBuffer(),
       timeout: 30000
     });
 
@@ -82,13 +105,14 @@ async function deploy() {
     }
 
     log(`Successfully deployed to Roku at ${cleanIP}`);
-    if (body.trim()) {
-      log(body.trim());
+
+    for (const message of getInstallMessages(body)) {
+      log(message);
     }
   } catch (error) {
     log(`Deployment failed: ${error.message}`, 'error');
     if (error.code === 'ECONNREFUSED') {
-      log(`Could not connect to Roku at ${cleanIP}:8060`, 'error');
+      log(`Could not connect to Roku developer installer at ${getInstallerBaseUrl(cleanIP, installerPort)}`, 'error');
       log('Verify the IP address and that the Roku is in dev mode', 'warn');
     }
     process.exit(1);

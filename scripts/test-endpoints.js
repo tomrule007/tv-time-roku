@@ -1,4 +1,5 @@
 const fetch = require('node-fetch');
+require('dotenv').config({ quiet: true });
 
 const rokuIP = process.argv[2] || process.env.ROKU_DEV_TARGET;
 

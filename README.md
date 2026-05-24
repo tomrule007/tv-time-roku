@@ -36,6 +36,18 @@ Install dependencies:
 npm install
 ```
 
+Create a local `.env` file from `.env.example` and set your Roku and backend values:
+
+```text
+ROKU_DEV_TARGET=192.168.0.52
+ROKU_DEV_USERNAME=rokudev
+ROKU_DEV_PASSWORD=rokudev
+ROKU_DEV_INSTALL_PORT=80
+BACKEND_URL=http://192.168.0.141:3000/
+```
+
+`BACKEND_URL` is baked into the generated Roku package at build time. If it is omitted, the app falls back to local network discovery.
+
 Build the sideload package:
 
 ```bash
@@ -78,6 +90,8 @@ Check that Roku ECP endpoints are reachable:
 ```bash
 npm run check:roku -- 192.168.1.100
 ```
+
+Deploy uses the Roku developer web installer on port `80`. `check:roku` uses the ECP API on port `8060`.
 
 ## Project Layout
 

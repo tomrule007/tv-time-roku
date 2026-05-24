@@ -17,12 +17,20 @@ sub Main()
     screen.show()
 
     ' Initialize the app state
-    m.serverAddress = ""
+    m.serverAddress = GetConfiguredBackendAddress()
     m.discoveryStartTime = CreateObject("roSystemTime").GetTicksMs()
     m.discoveryTimeout = 30000  ' 30 seconds
     m.pollInterval = 5000  ' Poll every 5 seconds
     m.lastPollTime = 0
     m.discoveryAttempted = false
+
+    if m.serverAddress <> ""
+        print "Using configured backend server: " + m.serverAddress
+        scene.serverAddress = m.serverAddress
+        scene.discovering = false
+        m.lastPollTime = CreateObject("roSystemTime").GetTicksMs()
+        PollTVTimeStatus(scene, m.serverAddress)
+    end if
 
     ' Main event loop
     while(true)
