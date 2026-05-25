@@ -1,14 +1,23 @@
-# TV Time Roku
+# TV Time - Roku Client
 
-A Roku SceneGraph channel for showing remaining TV viewing time from a local TV Time backend server.
+This is a Roku SceneGraph channel that serves as a client for the TV Time monitoring system. It displays the remaining TV viewing time allocated for the day, providing a clear visual indicator for users (and parents) directly on the television screen.
+
+This project requires the **[TV Time Backend](https://github.com/tomrule007/tv-time)** to be running on your local network to manage time limits and usage data.
 
 ## Features
 
 - Automatic backend discovery on the local network
 - Status polling every 5 seconds
-- Color-coded remaining time: green over 30 minutes, orange from 10 to 30 minutes, red under 10 minutes
+- **Visual Alerts**: Color-coded countdown (Green > 30m, Orange 10-30m, Red < 10m)
 - Full-screen timeout state when the daily limit is reached
 - Simple error state when the backend cannot be found
+
+## Screenshots
+
+<p align="center">
+  <img src="screenshots/screenshot-1.png" width="400" alt="TV Time Remaining">
+  <img src="screenshots/screenshot-2.png" width="400" alt="Limit Reached">
+</p>
 
 ## Backend API
 
@@ -30,13 +39,13 @@ Expected JSON response:
 
 ## Setup
 
-Install dependencies:
+1. **Install dependencies**:
 
 ```bash
 npm install
 ```
 
-Create a local `.env` file from `.env.example` and set your Roku and backend values:
+2. **Configure environment**: Create a `.env` file in the root directory:
 
 ```text
 ROKU_DEV_TARGET=192.168.0.52
@@ -48,7 +57,7 @@ BACKEND_URL=http://192.168.0.141:3000/
 
 `BACKEND_URL` is baked into the generated Roku package at build time. If it is omitted, the app falls back to local network discovery.
 
-Build the sideload package:
+3. **Build the package**:
 
 ```bash
 npm run build
@@ -64,18 +73,9 @@ npm run clean
 
 ## Deploy
 
-Enable Developer Mode on the Roku and note the device IP address. Then either pass the values on the command line:
+Ensure **Developer Mode** is enabled on your Roku. If you have configured your `.env` file as described in the Setup section, you can deploy with a single command:
 
 ```bash
-npm run deploy -- 192.168.1.100 rokudev your-dev-password
-```
-
-Or set environment variables:
-
-```bash
-ROKU_DEV_TARGET=192.168.1.100
-ROKU_DEV_USERNAME=rokudev
-ROKU_DEV_PASSWORD=your-dev-password
 npm run deploy
 ```
 
