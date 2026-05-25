@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Roku channel application for monitoring TV viewing time using a local backend server",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "node scripts/build.js",
     "clean": "node scripts/clean.js",
@@ -11,6 +12,7 @@
     "dev": "node scripts/dev-mode.js",
     "debug:roku": "node scripts/debug-console.js",
     "check:roku": "node scripts/test-endpoints.js",
+    "screenshot": "node scripts/screenshot.js",
     "test": "npm run build"
   },
   "keywords": [

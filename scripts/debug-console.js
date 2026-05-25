@@ -1,5 +1,6 @@
-const net = require('net');
-require('dotenv').config({ quiet: true });
+import net from 'node:net';
+import 'dotenv/config';
+import process from 'node:process';
 
 const positionalArgs = process.argv.slice(2).filter((arg) => !arg.startsWith('-'));
 const rokuIP = positionalArgs[0] || process.env.ROKU_DEV_TARGET;
@@ -29,7 +30,7 @@ if (!cleanIP) {
   log('Roku IP address not provided', 'error');
   log('Usage: npm run debug:roku -- <roku-ip>', 'warn');
   log('Or set ROKU_DEV_TARGET in .env', 'warn');
-  process.exit(1);
+  process.exit(1); // Standard exit is fine for sync check
 }
 
 log(`Connecting to Roku debug console at ${cleanIP}:${debugPort}`);

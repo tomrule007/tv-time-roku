@@ -1,7 +1,11 @@
-const fs = require('fs');
-const path = require('path');
-const archiver = require('archiver');
-require('dotenv').config({ quiet: true });
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import archiver from 'archiver';
+import 'dotenv/config';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const rootDir = path.resolve(__dirname, '..');
 const sourceDir = path.join(rootDir, 'source');
@@ -106,7 +110,9 @@ function createBuild() {
   });
 }
 
-createBuild().catch((err) => {
+try {
+  await createBuild();
+} catch (err) {
   log(`Build failed: ${err.message}`, 'error');
-  process.exit(1);
-});
+  process.exitCode = 1;
+}

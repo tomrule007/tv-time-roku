@@ -1,8 +1,12 @@
-const fs = require('fs');
-const path = require('path');
-const { DigestClient } = require('digest-fetch');
-const FormData = require('form-data');
-require('dotenv').config({ quiet: true });
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { DigestClient } from 'digest-fetch';
+import FormData from 'form-data';
+import 'dotenv/config';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const rootDir = path.resolve(__dirname, '..');
 const packageZip = path.join(rootDir, 'dist', 'apps', 'tv-time-roku.zip');
@@ -76,14 +80,14 @@ async function deploy() {
   try {
     const url = `${getInstallerBaseUrl(cleanIP, installerPort)}/plugin_install`;
     const form = new FormData();
-    const archive = fs.readFileSync(packageZip);
 
-    form.append('mysubmit', 'Install');
-    form.append('archive', archive, {
+    // Field order matters for Roku: archive -> passwd -> mysubmit
+    form.append('archive', fs.readFileSync(packageZip), {
       filename: path.basename(packageZip),
       contentType: 'application/zip'
     });
     form.append('passwd', password);
+    form.append('mysubmit', 'Install');
 
     log(`Uploading to ${url}...`);
 
@@ -91,6 +95,8 @@ async function deploy() {
     const response = await client.fetch(url, {
       method: 'POST',
       headers: {
+        'Origin': getInstallerBaseUrl(cleanIP, installerPort),
+        'Referer': `${getInstallerBaseUrl(cleanIP, installerPort)}/plugin_install`,
         ...form.getHeaders(),
         'Content-Length': form.getLengthSync()
       },
@@ -101,7 +107,11 @@ async function deploy() {
     const body = await response.text();
 
     if (!response.ok) {
-      throw new Error(`Roku returned HTTP ${response.status}: ${body.trim()}`);
+      const errorSnippet = body.includes('Install Failure') 
+        ? 'Install Failure (check the dev console for details)' 
+        : body.trim().slice(0, 100);
+        
+      throw new Error(`Roku returned HTTP ${response.status}: ${errorSnippet}`);
     }
 
     log(`Successfully deployed to Roku at ${cleanIP}`);

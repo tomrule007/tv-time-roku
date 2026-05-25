@@ -50,6 +50,17 @@
         />
 
         <Label
+            id="limitLabel"
+            text="Daily limit: -- minutes"
+            translation="[80, 440]"
+            width="1120"
+            height="48"
+            color="0xA0A9B8FF"
+            horizAlign="center"
+            visible="false"
+        />
+
+        <Label
             id="minutesLabel"
             text="-- minutes"
             translation="[80, 292]"
@@ -70,6 +81,7 @@
             m.headlineLabel = m.top.findNode("headlineLabel")
             m.detailLabel = m.top.findNode("detailLabel")
             m.minutesLabel = m.top.findNode("minutesLabel")
+            m.limitLabel = m.top.findNode("limitLabel")
 
             m.top.observeField("serverAddress", "onFieldChanged")
             m.top.observeField("timeRemaining", "onFieldChanged")
@@ -96,6 +108,7 @@
                 m.detailLabel.text = "Make sure the backend is running on your network."
                 m.detailLabel.visible = true
                 m.minutesLabel.visible = false
+                m.limitLabel.visible = false
             else if hasError
                 m.statusLabel.text = "Backend server not found"
                 m.statusLabel.color = "0xFF6B6BFF"
@@ -104,6 +117,7 @@
                 m.detailLabel.text = m.top.error
                 m.detailLabel.visible = true
                 m.minutesLabel.visible = false
+                m.limitLabel.visible = false
             else if isLimitHit
                 m.statusLabel.text = "Daily TV limit reached"
                 m.statusLabel.color = "0xFF6B6BFF"
@@ -116,6 +130,7 @@
                 end if
                 m.detailLabel.visible = true
                 m.minutesLabel.visible = false
+                m.limitLabel.visible = false
             else
                 m.statusLabel.text = "TV Time Remaining"
                 m.statusLabel.color = "0x72D7EEFF"
@@ -128,7 +143,14 @@
                 end if
                 m.detailLabel.visible = true
                 m.minutesLabel.visible = true
+                m.limitLabel.visible = true
                 m.minutesLabel.text = timeRemaining.ToStr() + " minutes"
+                
+                if dailyLimitMinutes > 0
+                    m.limitLabel.text = "Daily limit: " + dailyLimitMinutes.ToStr() + " minutes"
+                else
+                    m.limitLabel.text = "Daily limit: No limit set"
+                end if
                 
                 if timeRemaining > 30
                     m.minutesLabel.color = "0x00FF00FF"  ' Green
