@@ -15,8 +15,8 @@ This project requires the **[TV Time Backend](https://github.com/tomrule007/tv-t
 ## Screenshots
 
 <p align="center">
-  <img src="screenshots/screenshot-1.png" width="400" alt="TV Time Remaining">
-  <img src="screenshots/screenshot-2.png" width="400" alt="Limit Reached">
+  <img src="assets/tv-time-remaining-view.png" width="400" alt="TV Time Remaining">
+  <img src="assets/daily-tv-limit-reached-view.png" width="400" alt="Limit Reached">
 </p>
 
 ## Backend API
